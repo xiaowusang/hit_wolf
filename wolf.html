@@ -1,0 +1,147 @@
+<!DOCTYPE html>
+<html lang="zh-cn">
+<head>
+	<meta charset="UTF-8">
+	<title>锅打灰太狼</title>
+	<style>
+		#wrap{
+			width: 320px;
+			height: 480px;
+			margin: 20px auto;
+			position: relative;
+			background: url('images/game_bg.jpg') 0 0 no-repeat;
+		}
+		#score,#progress,#start,#desc{
+			position: absolute;
+		}
+		#score{
+			left:60px;
+			top: 12px;
+		}
+		#progress{	
+			width: 183px;
+			height: 17px;
+			border-radius:10px;
+			left:63px;
+			top:65px;
+			background-color: red;
+		}
+		#start,#desc{
+			font-size:23px;
+			font-weight: bold;
+			color:orange;
+			text-align:center;
+			left:100px;
+			cursor:pointer;
+			width:150px;
+		}
+		#start{
+			top:250px;
+		}
+		#desc{
+			top: 300px;
+		}
+		img{
+			position:absolute;
+		}
+	</style>
+</head>
+<body>
+	<div id="wrap">
+		<div id="score">0</div>
+		<div id="progress"></div>
+		<div id="start">开始</div>
+	</div>
+	<script type="text/javascript">
+		gameBegin();
+		function gameBegin(){
+			var positionZone= [
+			{left:"98px",top:"115px"},
+			{left:"17px",top:"160px"},
+			{left:"15px",top:"220px"},
+			{left:"30px",top:"293px"},
+			{left:"122px",top:"273px"},
+			{left:"207px",top:"295px"},
+			{left:"200px",top:"211px"},
+			{left:"187px",top:"141px"},
+			{left:"100px",top:"185px"}
+			];
+			var t;
+			var startGame=document.querySelector("#start");
+			var progress=document.querySelector("#progress");
+			var wrap=document.querySelector("#wrap");
+			var speed=1;
+			var begin=0;
+			 //表示当前第几张图片
+			
+			startGame.onclick=function(){
+				//下面判断是不是已经开始了游戏
+				if(begin==0){
+					begin=1;
+					startGame.innerHTML="";
+					//点击了开始按钮就要有狼从画面出来，那么就让它每一秒钟产生一头狼
+					wolfTimer=setInterval(createWolf,100);  //这里设置没一秒钟产生一狼的定时器
+				}
+				t=setInterval(countDownF,100);
+			}
+			function createWolf(){
+				//产生的狼放在哪呢？计算机并不不知道，所以先要将位置告诉计算机
+				var located=positionZone[rand(0,8)];     //有9个位置可供选择，并且是随机的，
+				//既然位置已经选好了，那么就要有狼可放
+				wolfApper(located);      //这个里面的实际参数就是将产生的狼放在已经随机选好的位置上
+			}
+			function wolfApper(obj){  //这里形参表示放在哪这一逻辑
+				//问题来了，当前函数是为了实现将产生的狼选位置这一功能，若画面中之已经被占满了或者当前随机出来的位子里面已经有狼了怎么办？此时就要要等画面上有位子了之后才能放啊，因此就需要做个判断了，若坑全部被占了，或者随机选出来的位置已经有狼了，那么就把当前长生的狼丢了不要，重新再去拎一只过来。等再拎一只过来时，说不定就有位置了。
+				var wolfNumber=wrap.querySelectorAll("img");   //这里表示取出wrap里面的所有img
+				if(wolfNumber.length>=9){
+					return;
+				}
+				for(var i=0;i<wolfNumber.length;i++){
+					if(wolfNumber[i].style.left==obj.left){
+						return;
+					}
+				}
+				//下面开始产生新的图片
+				var img=new Image();
+				img.style.left=obj.left;
+				img.style.top=obj.top;
+				//将产生的img丢到wrap后面
+				wrap.appendChild(img);
+				var ApperCount = null;
+				var disApperCount=null;
+				var index=0; 
+				//下面要写让灰太狼从地下出来，其实也就是设置一个定时器，其实新建的img只是一个框子，每隔100毫秒改变路径一次，给人的视觉就像从里面上来一样，
+				ApperCount=setInterval(function(){
+					img.src="images/h"+index+".png";
+					index++;
+					if(index>5){
+						clearInterval(ApperCount);
+						index=5;
+						disApperCount=setInterval(disApper,100)
+					}
+					
+				},100);
+				function disApper(){
+					index--;
+					img.src="images/h"+index+".png";
+					if(index<=0){
+						clearInterval(disApperCount);
+						img.parentNode.removeChild(img);
+					}
+				}
+			}
+			function countDownF(){
+				progress.style.width=progress.offsetWidth-speed+"px";
+				progress.style.height="16px";
+				if(parseInt(progress.style.width)<=0){
+					clearInterval(t);
+					startGame.innerHTML="game over";
+				}
+			}
+			function rand(min,max){
+				return Math.floor(Math.random()*(max-min+1)+min);
+			}
+		}
+	</script>
+</body>
+</html>
