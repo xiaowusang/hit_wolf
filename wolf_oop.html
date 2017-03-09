@@ -1,0 +1,177 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+	<meta charset="UTF-8">
+	<title>锅打灰太狼</title>
+	<style>
+		.wrap{
+			width: 320px;
+			height: 480px;
+			margin: 20px auto;
+			position: relative;
+			background: url('images/game_bg.jpg') 0 0 no-repeat;
+		}
+		#score,#progress,#start,#desc{
+			position: absolute;
+		}
+		#score{
+			left:60px;
+			top: 12px;
+		}
+		#progress{	
+			width: 183px;
+			height: 17px;
+			border-radius:10px;
+			left:62px;
+			top:65px;
+			background-color: orange;
+		}
+		#start,#desc{
+			font-size:23px;
+			font-weight: bold;
+			color:orange;
+			text-align:center;
+			left:100px;
+			cursor:pointer;
+			width:150px;
+		}
+		#start{
+			top:250px;
+		}
+		#desc{
+			top: 300px;
+		}
+		img{
+			position:absolute;
+		}
+	</style>
+</head>
+<body>
+	<div class="wrap">
+		<div id="score">0</div>
+		<div id="progress"></div>
+		<div id="start">开始</div>
+	</div>
+	<script>
+		hitWolf();
+		function hitWolf(){
+			var game ={
+				startBtn:document.querySelector('#start'),
+				wrap:document.querySelector('.wrap'),
+				scoreNum:0,
+				scoreBox:document.querySelector('#score'),
+				progressBar:document.querySelector('#progress'),
+				barWidth: document.querySelector('#progress').offsetWidth,
+				percents:100,
+				wolfTimer:null,
+				progressTimer:null,
+				started:0,
+				posArr : [
+					{left:"98px",top:"115px"},
+					{left:"17px",top:"160px"},
+					{left:"15px",top:"220px"},
+					{left:"30px",top:"293px"},
+					{left:"122px",top:"273px"},
+					{left:"207px",top:"295px"},
+					{left:"200px",top:"211px"},
+					{left:"187px",top:"141px"},
+					{left:"100px",top:"185px"}
+				]
+			}
+			game.startBtn.onclick=function(){
+				if(game.started==0){
+					game.createWolfs();
+					game.startBtn.style.display='none';
+					game.started=1;
+					game.progress();
+				}
+			}
+			game.createWolfs=function(){
+				wolfTimer=setInterval(function(){
+					game.createWolf();
+				},1000)
+			}
+			game.createWolf=function(){
+				var pos = game.posArr[rand(0,8)];
+				console.log(pos)
+				var wolfs =game.wrap.querySelectorAll('img');
+				if(wolfs.length>=game.posArr.length){
+					return;
+				}
+				for(var i=0;i<wolfs.length;i++){
+					if(wolfs[i].style.left==pos.left){
+						return;
+					}
+				}
+				var wolf = new Image();
+				wolf.style.left=pos.left;
+				wolf.style.top=pos.top;
+				game.wrap.appendChild(wolf);
+				wolf.appearTimer=null;
+				wolf.disappearTimer=null;
+				wolf.hitTimer=null;
+				wolf.index=0;
+				wolf.type = Math.random()>0.8?'x':'h';
+				wolf.hitted=false;
+				wolf.onclick=function(){
+					if(this.hitted==true){
+						return;
+					}
+					this.hitted=true;
+					if(this.type=='h'){
+						game.scoreNum+=10;
+					}else{
+						game.scoreNum-=10;
+					}
+					this.index=6;
+					clearInterval(this.disappearTimer);
+					clearInterval(this.appearTimer);
+					this.hitTimer=setInterval(function(){
+						wolf.src='images/'+wolf.type+wolf.index+'.png';
+						wolf.index++;
+						if(wolf.index>9){
+							clearInterval(wolf.hitTimer);
+							wolf.index=5;
+							wolf.disappearTimer=setInterval(function(){
+								disappear();
+							},100)
+						}
+					},100)
+				}
+				wolf.appearTimer=setInterval(function(){
+					wolf.src='images/'+wolf.type+wolf.index+'.png';
+					wolf.index++;
+					if(wolf.index>5){
+						clearInterval(wolf.appearTimer);
+						wolf.index=5;
+						wolf.disappearTimer=setInterval(function(){
+							disappear();
+						},100)
+					}
+				},100)
+				function disappear(){
+					wolf.src='images/'+wolf.type+wolf.index+'.png';
+					wolf.index--;
+					if(wolf.index<=0){
+						clearInterval(wolf.disappearTimer);
+						wolf.remove();
+					}
+				}
+			}
+			
+			game.progress=function(){
+				game.precents--;
+				game.progressBar.style.width=game.percents/100*game.barWidth+'px';
+				if(game.precents<=0){
+					clearInterval(game.wolfTimer);
+					clearInterval(game.progressTimer);
+				}
+			}
+			
+			function rand(min,max){
+				return Math.round(Math.random()*(max-min)+min);
+			}
+		}
+	</script>
+</body>
+</html>

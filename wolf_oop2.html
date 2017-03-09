@@ -1,0 +1,184 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+	<meta charset="UTF-8">
+	<title>Document</title>
+	<style>
+		.wrap{
+			width: 320px;
+			height: 480px;
+			margin: 20px auto;
+			position: relative;
+			background: url('images/game_bg.jpg') 0 0 no-repeat;
+		}
+		#score,#progress,#start,#desc{
+			position: absolute;
+		}
+		#score{
+			left:60px;
+			top: 12px;
+			color: #f00;
+			font-size: 18px;
+		}
+		#progress{	
+			width: 183px;
+			height: 17px;
+			border-radius:10px;
+			left:62px;
+			top:65px;
+			background-color: orange;
+		}
+		#start,#desc{
+			font-size:23px;
+			font-weight: bold;
+			color:orange;
+			text-align:center;
+			left:100px;
+			cursor:pointer;
+			width:150px;
+		}
+		#start{
+			top:240px;
+			left: 55px;
+			background: #f00;
+			color: #fff;
+			padding: 10px 30px;
+			opacity: 0.9;
+			border-radius: 10px;
+		}
+		#desc{
+			top: 300px;
+		}
+		img{
+			position:absolute;
+		}
+	</style>
+</head>
+<body>
+	<div class="wrap">
+		<div id="score">0</div>
+		<div id="progress"></div>
+		<div id="start">开始</div>
+	</div>
+	<script type="text/javascript">
+		strikeWolfH();
+		function strikeWolfH(){
+			var wrap = document.querySelector('.wrap');
+			var score = 0;
+			var scoreBox = document.querySelector('#score');
+			var start = document.querySelector('#start');
+			var started = 0;
+			var progress = document.querySelector('#progress');
+			var progressLength = document.querySelector('#progress').offsetWidth;
+			var wolfTimer = null;
+			var progressTimer =null;
+			var percent = 100;
+			var posArr = [	{left:"98px",top:"115px"},
+							{left:"17px",top:"160px"},
+							{left:"15px",top:"220px"},
+							{left:"30px",top:"293px"},
+							{left:"122px",top:"273px"},
+							{left:"207px",top:"295px"},
+							{left:"200px",top:"211px"},
+							{left:"187px",top:"141px"},
+							{left:"100px",top:"185px"}
+								];
+			//点击按钮，游戏开始.
+			start.onclick = function(){
+				if(started == 0){
+					started = 1;
+					this.style.display = 'none';
+					wolfTimer = setInterval(createWolf,1000);
+					progressTimer =setInterval(countDown,200);
+				}
+			}
+			//在定位的位置随机出现图片
+			function createWolf(){
+				var pos = posArr[rand(0,8)];
+				wolfAppear(pos);
+			}
+			function wolfAppear(obj){
+				var wolfs = wrap.querySelectorAll('img');
+				var img = new Image();
+				wrap.appendChild(img);
+				img.style.top = obj.top;
+				img.style.left = obj.left;
+				var index = 0;
+				//出现灰太狼或者小灰灰的随机数
+				var show = Math.random()>0.7?'x':'h';
+				var appesrTimer = null;
+				var disappearTimer = null;
+				var strikeTimer = null;
+				img.striked = false;
+				//当图片超过9张时，跳出
+				if(wolfs.length>9)
+					return;
+				//同一个位置只能存在一张图片，否则跳出
+				for(var i=0;i<wolfs.length;i++){
+					if(wolfs[i].style.left == obj.left){
+						return;
+					}
+				}
+				//狼出现计时
+				appesrTimer = setInterval(function(){
+					img.src = "images/"+show+index+".png";
+					index++;
+					if(index>5){
+						clearInterval(appesrTimer);
+						index = 5;
+						disappearTimer = setInterval(disappear,100);
+					}
+				},100);
+				//狼消失函数
+				function disappear(){
+					img.src = "images/"+show+index+".png";
+					index--;
+					if(index<=0){
+						clearInterval(disappearTimer);
+						img.parentNode.removeChild(img);
+					}
+				}
+				img.onclick = function(){
+					//判断，不能重复点击
+					if(this.striked === true)
+						return;
+					this.striked = true;
+					//点到灰太狼加分，否则扣分
+					show=='h'?(score+=10):(score-=10);
+					scoreBox.innerHTML = score;
+					index = 6;
+					//当点击到灰太狼时，图片直接跳转到第六张。避免干扰清除计时器
+					clearInterval(appesrTimer);
+					clearInterval(disappearTimer);
+					strikeTimer = setInterval(function(){
+						img.src = "images/"+show+index+".png";
+						index++;
+						//当点击图片到达最后一张时。点击计时结束，进入消失计时
+						if(index>=9){
+							clearInterval(strikeTimer);
+							disappearTimer = setInterval(disappear,100);
+						}
+					},100);
+				}
+			}
+			function rand(min,max){
+				return Math.round(Math.random()*(max-min)+min);
+			}
+			function countDown(){
+				percent --;
+				if(percent<0){
+					percent = 0;
+				}
+				var speed = percent/100 * progressLength;
+				progress.style.width = speed +'px';
+				if(percent<=0){
+					clearInterval(progressTimer);
+					clearInterval(wolfTimer);
+					start.innerHTML = "GAME OVER";
+					start.style.display = 'block';
+				}
+			}
+		}
+	</script>
+</body>
+</html>
